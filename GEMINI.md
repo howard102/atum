@@ -20,6 +20,7 @@
 - **安全禁令**：禁止讀取或輸出任何 secrets、瀏覽器 session 或 token。
 
 ## 本專案的特殊角色關係
-`docs/spec/` 中的 **Sekhmet（`id: code-reviewer`）** 這個 Gate，在高風險工單下由 agy 執行——
-亦即 Atum 設計中的該角色與現行 agy 異質審查是**同一個 Gate**，不重複跑兩次。
+`docs/spec/` 中的 **Sekhmet（`id: code-reviewer`）** 這個 Gate，在高風險工單下由**跨廠商審查者**
+執行——在本 workspace 即為本表面（Antigravity）。亦即 Atum 設計中的該角色與現行的跨廠商異質審查是
+**同一個 Gate**，不重複跑兩次。
 審查本專案文件時請留意此對應，勿將兩者當成兩道關卡。

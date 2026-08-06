@@ -19,7 +19,7 @@
 - 2026-08-06 | Gate **不得靜默放行**；bypass 須寫入 `gate_bypassed` 且不計為通過 | Kratos 在 `stop_hook_active` 時自動放行以防迴圈，靜默放行等於沒有 Gate
 - 2026-08-06 | **只有 GREEN 不構成證據**，必須留 RED→GREEN 成對記錄 | 無 RED 無法證明測試真的會偵測到缺陷
 - 2026-08-06 | `requirements-analyst` 有權產出 `out_of_scope` verdict 並**終止流程**；另設 `ABANDONED`、`SUPERSEDED` 兩終態 | 原狀態機只能往前或退回，「這個需求本身不成立」無出口，會被反覆重新提起
-- 2026-08-06 | **`code-reviewer` 與現行 agy 異質審查是同一個 Gate，只跑一次**；`ACCEPTED` 與 wiki 的 PO 終審是同一個 | 兩套 SDLC 疊在一起若不逐項映射，第一次衝突就會停在「這步該聽誰的」
+- 2026-08-06 | **`code-reviewer` 與宿主專案現行的跨廠商異質審查是同一個 Gate，只跑一次**；`ACCEPTED` 與 wiki 的 PO 終審是同一個 | 兩套 SDLC 疊在一起若不逐項映射，第一次衝突就會停在「這步該聽誰的」
 - 2026-08-06 | **風險分級於 `SPEC_APPROVED` 之後判定**，判為一般變更者離開九階段改走 commit 快車道 | 判分級需先知道會動到什麼，但須在 AC 鎖定前判完；否則改一個錯字也要跑完九個 stage
 - 2026-08-06 | 成本控制由「開幾個子 agent」改為「每角色三段模型」（`model`／`model_eco`／`model_power`），另設每工單總呼叫預算 15 | 九階段一個功能就是 9+ 次呼叫，併發上限擋不住序列成本；分層讓便宜階段真的便宜
 - 2026-08-06 | Degraded mode 可合併 `requirements-analyst`+`spec-author`、AC 由 PO 直接給，但 **RED evidence／`code-reviewer`／`verifier` 三個 Gate 不可合併** | 這三個是整套流程的最小防線，壓縮它們等於取消 Atum 的存在理由
