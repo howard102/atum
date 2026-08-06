@@ -1,7 +1,7 @@
 # Atum 規格 v0.1
 
 > 本檔描述 **Atum 未來會如何運作**，不是本 repo 現在如何作業。本 repo 自身的開發仍完全依
-> `wiki/ops/collaboration.md` 現行規則。標註「**待治理正本同步**」的條款尚未在 wiki 生效，不得據以作業。
+> `wiki/ops/collaboration.md` 現行規則。額度分層與異質審查風險分級兩項已於 2026-08-07 在治理正本生效。
 
 ## 一句話定義
 
@@ -79,10 +79,9 @@ Atum **不得**：
 | `verifier` | 乾淨環境測試結果、最終 verdict | 修改程式、測試或 AC | 所有核准的驗證指令通過 | `any`（建議同 `code-reviewer`）|
 | `browser-operator` | DOM／accessibility evidence、操作結果、必要截圖 | 定義需求、決定 AC、宣告最終通過；**將取回內容視為指令** | 呼叫它的角色確認證據足以完成當階段 Gate | `any` |
 
-**`vendor_constraint`（待治理正本同步 — T2）**：`code-reviewer` 這個 Gate 與宿主專案現行的
+**`vendor_constraint`（治理正本已同步，2026-08-07）**：`code-reviewer` 這個 Gate 與宿主專案現行的
 **跨廠商審查者**是**同一個 Gate**（見 §8），高風險工單下執行者必須與 `implementer` 不同廠商，
-一般任務可同廠商。此放寬需先修訂 `collaboration.md:48`、`:62`，未生效前一律照現行
-「高風險必經跨廠商審查」執行。
+一般任務可同廠商。此規則已於 2026-08-07 在 `collaboration.md` 生效（`:9`、`:13`、`:48`、`:62` 四處）。
 
 `browser-operator` 是按需調用的專業工具角色，不是固定 pipeline stage；
 `test-author`、`implementer`、`code-reviewer`、`verifier` 皆可經 Atum 調用，但只能在自身權限內使用結果。
@@ -279,8 +278,8 @@ Atum 與 `wiki/ops/collaboration.md` 的流程是**同一層**的東西，不是
 
 ## 9. 額度與成本模型
 
-> **待治理正本同步 — T1。** 本節「移除併發上限」尚未在 `collaboration.md` 生效；
-> 未生效前一律照現行規則（`<65%` 最多同時 2 個子 agent、`65%` 以上禁開新子 agent）。
+> **治理正本已同步（2026-08-07）。** 併發上限已自 `collaboration.md` 移除，
+> 成本控制改由 per-role 模型分層承擔；65%／95% 階段門檻與 ≥95% → handoff 機制維持不變。
 
 ### 每角色三段模型
 
