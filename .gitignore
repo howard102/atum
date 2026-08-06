@@ -1,0 +1,32 @@
+# atum — repo-local ignore（完整寫入，不依賴全域 excludesfile）
+
+# --- secrets / 憑證 ---
+.env
+.env.*
+!.env.example
+*.pfx
+*.key
+*.pem
+credentials.json
+token.json
+
+# --- 瀏覽器狀態（Wadjet 相關；含登入 session 與 cookie，一律不入版控）---
+*.har
+browser-profile/
+storage-state.json
+cdp-*.json
+
+# --- logs ---
+*.log
+
+# --- agent/工具本機狀態 ---
+# 精準排除，專案設定與自製 skill 回歸版控（比照 sinotrade 2026-08-04 裁定）
+.claude/settings.local.json
+.codex/
+
+# --- 執行期產物（未來 pipeline 落地時使用）---
+.atum/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
