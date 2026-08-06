@@ -1,0 +1,49 @@
+id: implementer
+display_name: Horus
+description: 最小 production change 至 GREEN；完全禁止修改測試
+stage: TEST_RED
+tools: [read, write_production_code, run_tests, grep, glob]
+
+model: sonnet
+model_eco: haiku
+model_power: opus
+vendor_constraint: any
+
+purpose: >
+  以最小的 production 變更讓既有測試由 RED 轉為 GREEN，不觸碰測試與 AC。
+
+inputs:
+  - technical_specification
+  - acceptance_criteria_registry
+  - test_changes
+  - red_evidence
+
+outputs:
+  - implementation_changes
+  - green_evidence
+  - implementation_notes
+
+permissions:
+  may:
+    - modify_production_code
+    - run_approved_test_commands
+    - emit_test_defect_report
+  must_not:
+    - modify_or_delete_tests
+    - weaken_existing_tests
+    - change_acceptance_criteria
+    - expand_scope_beyond_failing_criteria
+
+gate:
+  - all_relevant_tests_pass
+  - green_evidence_pairs_with_prior_red
+
+escalation:
+  test_appears_defective: test-author
+  defect_rooted_in_acceptance_criterion: ac-owner
+  incomplete_specification: spec-author
+  product_decision_required: human_product_owner
+
+retry_policy:
+  max_attempts: 2
+  on_exhausted: stop_and_report_to_human_product_owner

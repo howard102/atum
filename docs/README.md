@@ -20,9 +20,20 @@
 > 1. `spec/` 描述的是「Atum 未來會如何運作」，**不是**「本 repo 現在如何作業」。本 repo 自身開發依 wiki 現行規則。
 > 2. `spec/` 中標註「**待治理正本同步**」的條款尚未在 wiki 生效，**不得據以作業**。
 
+## 機器可讀權威（repo 根目錄）
+
+文件描述設計，下列檔案是**被程式讀取與驗證的權威**。兩者不一致時，
+以 `scripts/check-consistency.py` 的判定為準——它會擋下漂移。
+
+- `atum.yaml` — workflow、policy 與角色索引的單一權威
+- `roles/*.yaml` — 九份 role contract（八個 pipeline 角色 + orchestrator）
+- `schemas/*.json` — role / artifact / workflow 三份 JSON Schema
+- `scripts/check-consistency.py` — 六項反漂移檢查，`exit 0` 為通過
+
 ## 結構
 
-- `spec/` — 規格：角色合約、狀態機、Constitution、Gate 與證據、額度模型
+- `constitution.md` — Constitution v0.1 十六條，**唯一權威**（spec 與 atum.yaml 皆不複製條文）
+- `spec/` — 規格：角色合約、狀態機、Gate 與證據、額度模型
 - `tech/` — 技術說明與外部參照附錄
 - `discussions/` — 討論項目：一題一檔，命名 `YYYY-MM-DD-主題.md`；收斂後結論移入 decisions.md。固定四段結構（見下）
 - `decisions.md` — 已定案決策，禁止重新爭論；含專案層「已排除」節
@@ -38,6 +49,9 @@
 - `## 已排除` — 這次確定不做的事，附一行理由。範圍問題不是進度問題，排除後不再回到待釐清
 
 ## 檔案清單
+
+### 根目錄
+- [constitution.md](constitution.md) — Constitution v0.1 十六條原則；修改時須同步 `atum.yaml` 的 `constitution.count`
 
 ### spec/
 - [atum-v0.1.md](spec/atum-v0.1.md) — Atum 規格本體：角色 id/display_name 雙層命名、角色合約表與 `vendor_constraint`、Role Contract frontmatter schema、Gate 與證據雙層機制、狀態機與三終態、與 wiki 治理的映射、額度與成本模型、風險審查框架、Constitution v0.1 十六條

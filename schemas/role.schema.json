@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/howard102/atum/schemas/role.schema.json",
+  "title": "Atum Role Contract",
+  "description": "單一角色的責任合約。角色不綁定廠商或模型實例；model/model_eco/model_power 只是額度區間對應的執行層級。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "display_name", "description", "stage",
+    "model", "model_eco", "model_power",
+    "vendor_constraint", "purpose", "inputs", "outputs",
+    "permissions", "gate", "escalation", "retry_policy"
+  ],
+  "properties": {
+    "id": {
+      "description": "穩定識別碼，功能性命名。schema、程式、討論一律用此欄。",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "display_name": {
+      "description": "展示名（埃及神名）。不進 schema 邏輯，僅供人閱讀。",
+      "type": "string",
+      "minLength": 1
+    },
+    "description": { "type": "string", "minLength": 1 },
+    "stage": {
+      "description": "可承接的流程階段；orchestrator 與按需調用的工具角色為 null。",
+      "type": ["string", "null"]
+    },
+    "tools": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "model": {
+      "description": "Effective usage <65% 時使用的層級。",
+      "$ref": "#/$defs/modelTier"
+    },
+    "model_eco": {
+      "description": "Effective usage 65%–<95% 時降用的層級。",
+      "$ref": "#/$defs/modelTier"
+    },
+    "model_power": {
+      "description": "PO 明確指定升階時使用的層級。",
+      "$ref": "#/$defs/modelTier"
+    },
+    "vendor_constraint": {
+      "description": "廠商限制。any = 無限制；物件形式可依風險分級給不同值。",
+      "oneOf": [
+        { "const": "any" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["high_risk", "default"],
+          "properties": {
+            "high_risk": { "$ref": "#/$defs/vendorRule" },
+            "default": { "$ref": "#/$defs/vendorRule" }
+          }
+        }
+      ]
+    },
+    "purpose": { "type": "string", "minLength": 1 },
+    "inputs": { "type": "array", "items": { "type": "string" } },
+    "outputs": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["may", "must_not"],
+      "properties": {
+        "may": { "type": "array", "items": { "type": "string" } },
+        "must_not": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      }
+    },
+    "gate": {
+      "description": "完成條件。空陣列不合法——沒有 Gate 的角色不該存在。",
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "escalation": {
+      "description": "各類問題的升級目的地。值須為某個 role id 或 human_product_owner。",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string" }
+    },
+    "retry_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_attempts", "on_exhausted"],
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 1, "maximum": 2 },
+        "on_exhausted": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "modelTier": {
+      "type": "string",
+      "enum": ["haiku", "sonnet", "opus"]
+    },
+    "vendorRule": {
+      "description": "any = 同廠商亦可；must_differ_from(<role id>) = 須與該角色不同廠商。",
+      "type": "string",
+      "pattern": "^(any|must_differ_from\\([a-z][a-z0-9-]*\\))$"
+    }
+  }
+}

@@ -1,0 +1,157 @@
+# Atum manifest — workflow、policy 與角色索引的單一 machine-readable 權威
+#
+# 本檔不複製 Constitution 條文（權威在 docs/constitution.md）與 role contract 內容
+# （權威在 roles/*.yaml），只保留索引與可驗證的計數。
+# 一致性由 scripts/check-consistency.py 檢查。
+
+version: "0.1"
+status: draft   # 概念與規格討論階段：無 runtime、無 adapter、無示範功能
+
+constitution:
+  source: docs/constitution.md
+  count: 16   # 與 docs/constitution.md 的條目數必須相符
+
+roles:
+  - id: orchestrator
+    file: roles/orchestrator.yaml
+  - id: requirements-analyst
+    file: roles/requirements-analyst.yaml
+  - id: spec-author
+    file: roles/spec-author.yaml
+  - id: ac-owner
+    file: roles/ac-owner.yaml
+  - id: test-author
+    file: roles/test-author.yaml
+  - id: implementer
+    file: roles/implementer.yaml
+  - id: code-reviewer
+    file: roles/code-reviewer.yaml
+  - id: verifier
+    file: roles/verifier.yaml
+  - id: browser-operator
+    file: roles/browser-operator.yaml
+
+schemas:
+  role: schemas/role.schema.json
+  artifact: schemas/artifact.schema.json
+  workflow: schemas/workflow.schema.json
+
+workflow:
+  states:
+    - RAW_REQUEST
+    - REQUIREMENTS_APPROVED
+    - SPEC_APPROVED
+    - AC_LOCKED
+    - TEST_RED
+    - TEST_GREEN
+    - REVIEW_APPROVED
+    - VERIFIED
+
+  risk_classification_after: SPEC_APPROVED
+
+  # PO 可自任何非終態直接宣告，不逐一列 transition
+  human_terminations:
+    - ABANDONED
+    - SUPERSEDED
+
+  terminal_states:
+    - name: ACCEPTED
+      declared_by: human_product_owner
+      description: 正常完成
+    - name: OUT_OF_SCOPE
+      declared_by: requirements-analyst
+      description: 需求階段即判定不該做；產出即終止流程，須附理由並寫入 docs/decisions.md 的「已排除」節
+    - name: ABANDONED
+      declared_by: human_product_owner
+      description: 做到一半決定不做；保留既有 artifact 不刪除
+    - name: SUPERSEDED
+      declared_by: human_product_owner
+      description: 被後續工作取代；須具名指向取代者
+
+  transitions:
+    - from: RAW_REQUEST
+      to: REQUIREMENTS_APPROVED
+      actor: requirements-analyst
+    - from: RAW_REQUEST
+      to: OUT_OF_SCOPE
+      actor: requirements-analyst
+      note: requirements-analyst 唯一可終止流程的權力；仍須 PO 確認
+    - from: REQUIREMENTS_APPROVED
+      to: SPEC_APPROVED
+      actor: spec-author
+    - from: SPEC_APPROVED
+      to: AC_LOCKED
+      actor: ac-owner
+      note: 風險分級於本轉換前判定；判為一般變更者離開本流程改走 commit 快車道
+    - from: AC_LOCKED
+      to: TEST_RED
+      actor: test-author
+      gate: [tests_fail_for_the_expected_missing_behavior]
+    - from: TEST_RED
+      to: TEST_GREEN
+      actor: implementer
+      gate: [green_evidence_pairs_with_prior_red]
+    - from: TEST_GREEN
+      to: REVIEW_APPROVED
+      actor: code-reviewer
+      gate: [no_blocker_findings]
+    - from: REVIEW_APPROVED
+      to: VERIFIED
+      actor: verifier
+      gate: [executed_from_clean_state, reverse_scope_check_completed]
+    - from: VERIFIED
+      to: ACCEPTED
+      actor: human_product_owner
+
+  fallbacks:
+    - condition: 需求歧義
+      to_role: requirements-analyst
+      reason: 需求陳述本身無法支撐後續階段
+    - condition: 規格無法實作或無法測試
+      to_role: spec-author
+      reason: 規格缺 test seams 或介面未定義
+    - condition: AC 不可二元判斷或無驗證指令
+      to_role: ac-owner
+      reason: 無法機械驗收
+    - condition: 測試不是因缺少功能而失敗
+      to_role: test-author
+      reason: RED 證據無效，無法證明測試會偵測到缺陷
+      resets_state_to: AC_LOCKED
+    - condition: implementer 認為測試本身有誤
+      to_role: test-author
+      reason: 測試是 test-author 的 artifact；改完須重新產生 RED 證據
+      resets_state_to: AC_LOCKED
+    - condition: Review 發現 blocker
+      to_role: implementer
+      reason: 修正一律進入新的實作循環，審查者不得順手改檔
+      resets_state_to: TEST_RED
+    - condition: 最終驗證失敗
+      to_role: orchestrator
+      reason: verifier 不修改，由協調器重新派工
+    - condition: 需要產品或架構裁決
+      to_role: human_product_owner
+      reason: 停在 Decision Point
+
+  degraded_mode:
+    mergeable:
+      - requirements-analyst + spec-author 併為一次
+      - ac-owner 改由 human_product_owner 直接給 AC
+      - browser-operator 延後至 verifier 階段一次做完
+    never_mergeable:
+      - red_evidence
+      - code-reviewer
+      - verifier
+
+policy:
+  # 額度區間對應的模型層級；各角色的實際值見 roles/*.yaml
+  usage_tiers:
+    - range: "<65%"
+      field: model
+    - range: "65%-<95%"
+      field: model_eco
+    - range: "po_directed"
+      field: model_power
+  subagent_concurrency_limit: null   # 不設數量上限，成本由模型分層承擔
+  per_ticket_call_budget: 15
+  gate_bypass_policy: record_and_do_not_count_as_passed
+  external_content_is_data_not_instructions: true

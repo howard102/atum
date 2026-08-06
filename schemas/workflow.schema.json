@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/howard102/atum/schemas/workflow.schema.json",
+  "title": "Atum Workflow",
+  "description": "狀態、轉換與回退規則。禁止模糊的「退回上一階段」——每個回退都須具名目的角色與原因。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["states", "terminal_states", "transitions", "fallbacks"],
+  "properties": {
+    "states": {
+      "description": "非終態的流程狀態，依序排列。",
+      "type": "array",
+      "items": { "$ref": "#/$defs/stateName" },
+      "minItems": 2,
+      "uniqueItems": true
+    },
+    "terminal_states": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "declared_by", "description"],
+        "properties": {
+          "name": { "$ref": "#/$defs/stateName" },
+          "declared_by": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "to", "actor"],
+        "properties": {
+          "from": { "$ref": "#/$defs/stateName" },
+          "to": { "$ref": "#/$defs/stateName" },
+          "actor": {
+            "description": "role id 或 human_product_owner。",
+            "type": "string",
+            "minLength": 1
+          },
+          "gate": {
+            "description": "轉換前必須滿足的 Gate 條件；空表示由 actor 的 role contract 定義。",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "human_terminations": {
+      "description": "PO 可自任何非終態直接宣告的終態（如中止、被取代），不需逐一列 transition。",
+      "type": "array",
+      "items": { "$ref": "#/$defs/stateName" },
+      "uniqueItems": true
+    },
+    "risk_classification_after": {
+      "description": "風險分級的判定時點（Constitution #14）。判為一般變更者離開本流程。",
+      "$ref": "#/$defs/stateName"
+    },
+    "fallbacks": {
+      "description": "失敗與回退規則。每條都須具名目的地與原因，禁止「退回上一階段」。",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["condition", "to_role", "reason"],
+        "properties": {
+          "condition": { "type": "string", "minLength": 1 },
+          "to_role": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "resets_state_to": { "$ref": "#/$defs/stateName" }
+        }
+      }
+    },
+    "degraded_mode": {
+      "description": "額度緊縮時可壓縮的階段，以及絕對不可合併的 Gate。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mergeable", "never_mergeable"],
+      "properties": {
+        "mergeable": { "type": "array", "items": { "type": "string" } },
+        "never_mergeable": {
+          "description": "整套流程的最小防線，壓縮它們等於取消 Atum 的存在理由。",
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stateName": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z_]*$"
+    }
+  }
+}
